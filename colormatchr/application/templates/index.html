@@ -1,0 +1,162 @@
+{% extends 'layout.html' %}
+
+{%- set page_title = 'Search' -%}
+
+{% block header %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Color Search</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <div class="navbar-form navbar-left">
+
+       <div class="input-group">
+         <input type="text" class="form-control" name="color" id="color" value="#008080"/>
+         <span class="input-group-btn">
+           <button type="button" class="btn btn-default btn-search"><i class="fa fa-search"></i></button>
+         </span>
+       </div><!-- /input-group -->
+
+       <div class="input-group">
+        <select class="form-control" id="existing-color">
+          <option value="" disabled selected>You can pick existing color</option>
+          <option value="#000000">#000000 (205)</option>
+          <option value="#010101">#010101 (168)</option>
+          <option value="#020202">#020202 (147)</option>
+          <option value="#030303">#030303 (126)</option>
+          <option value="#040404">#040404 (112)</option>
+          <option value="#010000">#010000 (110)</option>
+          <option value="#FFFFFF">#FFFFFF (109)</option>
+          <option value="#000002">#000002 (107)</option>
+          <option value="#000100">#000100 (103)</option>
+          <option value="#050505">#050505 (100)</option>
+          <option value="#FEFEFE">#FEFEFE (92)</option>
+          <option value="#060606">#060606 (92)</option>
+          <option value="#070707">#070707 (90)</option>
+          <option value="#090909">#090909 (86)</option>
+          <option value="#080808">#080808 (85)</option>
+          <option value="#0A0A0A">#0A0A0A (81)</option>
+          <option value="#101010">#101010 (78)</option>
+          <option value="#0C0C0C">#0C0C0C (78)</option>
+          <option value="#0B0B0B">#0B0B0B (78)</option>
+          <option value="#0F0F0F">#0F0F0F (74)</option>
+          <option value="#111111">#111111 (73)</option>
+          <option value="#0D0D0D">#0D0D0D (73)</option>
+          <option value="#040000">#040000 (73)</option>
+          <option value="#0E0E0E">#0E0E0E (72)</option>
+          <option value="#121212">#121212 (71)</option>
+          <option value="#FDFDFD">#FDFDFD (70)</option>
+          <option value="#131313">#131313 (69)</option>
+          <option value="#030000">#030000 (69)</option>
+          <option value="#141414">#141414 (67)</option>
+          <option value="#020001">#020001 (66)</option>
+          <option value="#010103">#010103 (65)</option>
+          <option value="#151515">#151515 (64)</option>
+          <option value="#030200">#030200 (61)</option>
+          <option value="#020100">#020100 (59)</option>
+          <option value="#020204">#020204 (58)</option>
+          <option value="#FCFCFC">#FCFCFC (57)</option>
+          <option value="#171717">#171717 (56)</option>
+          <option value="#010100">#010100 (56)</option>
+          <option value="#FFFFFD">#FFFFFD (54)</option>
+          <option value="#181818">#181818 (54)</option>
+          <option value="#FAFAFA">#FAFAFA (53)</option>
+          <option value="#191919">#191919 (53)</option>
+          <option value="#000200">#000200 (53)</option>
+          <option value="#060000">#060000 (52)</option>
+          <option value="#050100">#050100 (52)</option>
+          <option value="#030102">#030102 (52)</option>
+          <option value="#FBFBFB">#FBFBFB (51)</option>
+          <option value="#1A1A1A">#1A1A1A (51)</option>
+        </select>
+       </div><!-- /input-group -->
+
+      </div>
+
+
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+{% endblock header %}
+
+{% block main %}
+  <div class="images-container">
+  </div>
+{% endblock main %}
+
+{% block tail_js %}
+  {{ super() }}
+
+  <script type="text/javascript">
+    function loading(loading) {
+      if (loading) {
+        $('.loader').show();
+      } else {
+        $('.loader').hide();
+      }
+    }
+
+    $(function() {
+      $('#color').colorpicker({
+        format:'hex',
+        color: $('#color').val(),
+        sliders: {
+          saturation: {
+              maxLeft: 200,
+              maxTop: 200,
+              callLeft: 'setSaturation',
+              callTop: 'setBrightness'
+          },
+          hue: {
+              maxLeft: 0,
+              maxTop: 200,
+              callLeft: false,
+              callTop: 'setHue'
+          },
+          alpha: {
+              maxLeft: 0,
+              maxTop: 200,
+              callLeft: false,
+              callTop: 'setAlpha'
+          }
+        }
+      });
+
+      $('#existing-color').on('change', function() {
+        var value = $(this).val();
+        $('#color').val(value);
+        $('#color').colorpicker('setValue', value);
+      });
+
+      $('.btn-search').on('click', function() {
+        var imagesContainer = $('.images-container');
+
+        imagesContainer.html('');
+        loading(true);
+
+        $.getJSON('/api/search/', {color: $('#color').val()}, function(response) {
+          loading(false);
+
+          if (response && response.success && response.data) {
+            response.data.images.forEach(function(item) {
+              var template = '<div class="single-img"><img src="{SRC}" alt="" /></div>'.replace('{SRC}', item['url']);
+
+              imagesContainer.append(template);
+            });
+          }
+        });
+      });
+
+    });
+  </script>
+{% endblock tail_js %}
